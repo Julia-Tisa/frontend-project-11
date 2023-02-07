@@ -4,7 +4,7 @@ const form = document.querySelector('form');
 const input = document.querySelector('#url-input');
 const feedback = document.querySelector('.feedback');
 
-export default (value, watchedState) => {
+export default (value, watchedState, i18nInstance) => {
   if (value === 'invalid') {
     const { error } = watchedState;
     input.classList.add('is-invalid');
@@ -22,7 +22,7 @@ export default (value, watchedState) => {
     feedback.classList.remove('text-danger');
     feedback.classList.remove('text-success');
     feedback.classList.add('text-success');
-    feedback.textContent = 'RSS успешно загружен';
+    feedback.textContent = i18nInstance.t('success');
     form.reset();
   }
 };
