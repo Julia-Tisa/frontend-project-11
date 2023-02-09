@@ -93,6 +93,35 @@ const renderPosts = (watchedState) => {
     button.setAttribute('data-bs-toggle', 'modal');
     button.setAttribute('data-bs-target', '#modal');
     button.textContent = 'Browse';
+    button.addEventListener('click', () => {
+      const body = document.querySelector('body');
+      body.classList.add('modal-open');
+      body.setAttribute('style', 'overflow: hidden; padding-right: 0px;');
+      const modalContainer = document.querySelector('.modal.fade');
+      modalContainer.classList.add('show');
+      modalContainer.removeAttribute('aria-hidden');
+      modalContainer.setAttribute('aria-model', 'true');
+      modalContainer.setAttribute('style', 'display: block;');
+
+      const h5 = document.querySelector('h5');
+      h5.textContent = post.title;
+      const description = document.querySelector('.modal-body.text-break');
+      description.textContent = post.description;
+      const aRead = document.querySelector('a');
+      aRead.removeAttribute('href');
+      aRead.setAttribute('href', post.url);
+      const closeButtons = document.querySelectorAll('[data-bs-dismiss="modal"]');
+      closeButtons.forEach((closeButton) => {
+        closeButton.addEventListener('click', () => {
+          body.classList.remove('modal-open');
+          body.removeAttribute('style');
+          modalContainer.classList.remove('show');
+          modalContainer.setAttribute('aria-hidden', 'true');
+          modalContainer.removeAttribute('aria-model');
+          modalContainer.removeAttribute('style');
+        });
+      });
+    });
     li.append(a);
     li.append(button);
     ulPosts.prepend(li);
