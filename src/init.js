@@ -3,7 +3,7 @@ import keyBy from 'lodash/keyBy.js';
 import onChange from 'on-change';
 import isEmpty from 'lodash/isEmpty.js';
 import i18n from 'i18next';
-import { renderFeeds, renderState } from './view.js';
+import { renderState, renderFeeds, renderPosts } from './view.js';
 import axios from 'axios';
 import parser from './parser.js';
 
@@ -19,6 +19,7 @@ export default async () => {
           notOneOf: 'RSS уже существует',
           notValid: 'Ссылка должна быть валидным URL',
           fall: 'Ресурс не содержит валидный RSS',
+          networkError: 'Проблемы с сетью. Пожалуйста, повторите попытку позже.',
         },
       },
     },
@@ -30,7 +31,7 @@ export default async () => {
     error: '',
     feeds: [],
     posts: [],
-    actualID: 0,
+    actualPostID: 0,
   };
 
   yup.setLocale({
@@ -75,7 +76,7 @@ export default async () => {
     const checkValid = await validate({ url: value }, watchedState.urls);
     if (isEmpty(checkValid)) {
       try {
-        const response = await axios.get(`https://allorigins.hexlet.app/get?url=${encodeURIComponent(`${value}`)}`);
+        const response = await axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(`${value}`)}`, { timeout: 5000 });
         const { contents } = response.data;
         const parsedContent = parser(contents);
         const rss = parsedContent.querySelector('rss');
@@ -86,16 +87,30 @@ export default async () => {
           const titleFeeds = parsedContent.querySelector('title');
           const descriptionFeeds = parsedContent.querySelector('description');
           watchedState.feeds.push({
-            id: watchedState.actualID,
             title: titleFeeds.textContent,
             description: descriptionFeeds.textContent,
           });
+          const itemsPosts = parsedContent.querySelectorAll('item');
+          itemsPosts.forEach((item) => {
+            watchedState.actualID += 1;
+            const link = item.querySelector('link');
+            const url = link.nextSibling.wholeText;
+            const title = item.querySelector('title');
+            const description = item.querySelector('description');
+            watchedState.posts.push({
+              id: watchedState.actualPostID,
+              title: title.textContent,
+              description: description.textContent,
+              url,
+            });
+          });
+          renderPosts(watchedState);
           renderFeeds(watchedState);
           watchedState.urls.push(value);
           watchedState.status = 'valid';
         }
-      } catch (error) {
-        console.log(error);
+      } catch {
+        watchedState.status = 'networkError';
       }
     }
     if (!isEmpty(checkValid)) {
