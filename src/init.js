@@ -99,15 +99,13 @@ export default async () => {
           const title = item.querySelector('title');
           const description = item.querySelector('description');
           const dataPosts = {
+            status: 'new',
             id: watchedState.actualPostID,
             title: title.textContent,
             description: description.textContent,
             url,
           };
-          const equalPosts = (obj) => _.isEqual(obj, dataPosts);
-          if (!watchedState.posts.some(equalPosts)) {
-            watchedState.posts.push(dataPosts);
-          }
+          watchedState.posts.push(dataPosts);
         });
         watchedState.urls.push(urlValue);
         watchedState.status = 'valid';
@@ -133,6 +131,7 @@ export default async () => {
               const title = item.querySelector('title');
               const description = item.querySelector('description');
               const dataPosts = {
+                status: 'new',
                 id: watchedState.actualPostID,
                 title: title.textContent,
                 description: description.textContent,

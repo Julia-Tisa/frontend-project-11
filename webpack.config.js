@@ -44,7 +44,6 @@ module.exports = {
     new HtmlWebpackPlugin({
       inject: false,
       template: path.join(__dirname, 'src', 'template.html'),
-      filename: 'index.html',
     }),
   ],
   devServer: {

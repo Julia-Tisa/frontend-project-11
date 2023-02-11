@@ -81,11 +81,22 @@ const renderPosts = (watchedState) => {
     li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
     const a = document.createElement('a');
     a.setAttribute('href', post.url);
-    a.classList.add('fw-bold');
+    if (post.status === 'new') {
+      a.classList.add('fw-bold');
+    } else {
+      a.classList.add('fw-normal', 'link-secondary');
+    }
     a.setAttribute('data-id', post.id);
     a.setAttribute('target', '_blank');
     a.setAttribute('rel', 'noopener noreferrer');
     a.textContent = post.title;
+    a.addEventListener('click', () => {
+      if (post.status === 'new') {
+        a.classList.remove('fw-bold');
+        a.classList.add('fw-normal', 'link-secondary');
+        post.status = 'viewed';
+      }
+    });
     const button = document.createElement('button');
     button.setAttribute('type', 'button');
     button.classList.add('btn', 'btn-outline-primary', 'btn-sm');
@@ -94,6 +105,11 @@ const renderPosts = (watchedState) => {
     button.setAttribute('data-bs-target', '#modal');
     button.textContent = 'Browse';
     button.addEventListener('click', () => {
+      if (post.status === 'new') {
+        a.classList.remove('fw-bold');
+        a.classList.add('fw-normal', 'link-secondary');
+        post.status = 'viewed';
+      }
       const body = document.querySelector('body');
       body.classList.add('modal-open');
       body.setAttribute('style', 'overflow: hidden; padding-right: 0px;');
