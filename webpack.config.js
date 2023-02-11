@@ -7,6 +7,11 @@ module.exports = {
     path: path.join(__dirname, 'dist'),
     filename: 'main.js',
   },
+  mode: 'development',
+  performance: {
+    maxEntrypointSize: 600000,
+    maxAssetSize: 600000,
+  },
   module: {
     rules: [
       {
