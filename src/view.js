@@ -45,7 +45,7 @@ const renderFeeds = (watchedState) => {
   const h2Container = document.querySelector('.card-body.feeds');
   const h2 = document.createElement('h2');
   h2.classList.add('card-title', 'h4');
-  h2.textContent = 'Fids';
+  h2.textContent = 'Фиды';
   h2Container.innerHTML = '';
   h2Container.append(h2);
 
@@ -71,7 +71,7 @@ const renderPosts = (watchedState) => {
   containerPosts.innerHTML = '';
   const h2Posts = document.createElement('h2');
   h2Posts.classList.add('card-title', 'h4');
-  h2Posts.textContent = 'Posts';
+  h2Posts.textContent = 'Посты';
   containerPosts.append(h2Posts);
 
   const ulPosts = document.querySelector('.list-group.posts');
@@ -103,7 +103,7 @@ const renderPosts = (watchedState) => {
     button.setAttribute('data-id', post.id);
     button.setAttribute('data-bs-toggle', 'modal');
     button.setAttribute('data-bs-target', '#modal');
-    button.textContent = 'Browse';
+    button.textContent = 'Просмотр';
     button.addEventListener('click', () => {
       if (post.status === 'new') {
         a.classList.remove('fw-bold');
