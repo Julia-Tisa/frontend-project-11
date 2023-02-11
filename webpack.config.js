@@ -1,6 +1,6 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
-const autoprefixer = require('autoprefixer'); 
+const autoprefixer = require('autoprefixer');
 
 module.exports = {
   entry: path.join(__dirname, 'src', 'index.js'),
