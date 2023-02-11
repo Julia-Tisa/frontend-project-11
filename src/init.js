@@ -3,10 +3,9 @@ import keyBy from 'lodash/keyBy.js';
 import onChange from 'on-change';
 import isEmpty from 'lodash/isEmpty.js';
 import i18n from 'i18next';
-import { renderState, renderFeeds, renderPosts } from './view.js';
 import axios from 'axios';
+import { renderState, renderFeeds, renderPosts } from './view.js';
 import parser from './parser.js';
-import _ from 'lodash';
 
 export default async () => {
   const i18nInstance = i18n.createInstance();
@@ -147,9 +146,9 @@ export default async () => {
           console.log(err);
         }
       });
-      console.log('update');
       timerId = setTimeout(tick, 5000);
     }, 5000);
+    console.log(timerId);
   };
 
   form.addEventListener('submit', async (e) => {
