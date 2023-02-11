@@ -6,6 +6,7 @@ import i18n from 'i18next';
 import { renderState, renderFeeds, renderPosts } from './view.js';
 import axios from 'axios';
 import parser from './parser.js';
+import _ from 'lodash';
 
 export default async () => {
   const i18nInstance = i18n.createInstance();
@@ -66,7 +67,91 @@ export default async () => {
     if (path === 'status') {
       renderState(value, watchedState, i18nInstance);
     }
+    if (path === 'feeds') {
+      renderFeeds(watchedState);
+    }
+    if (path === 'posts') {
+      renderPosts(watchedState);
+    }
   });
+
+  const goNetwork = async (urlValue) => {
+    try {
+      const response = await axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(`${urlValue}`)}`, { timeout: 5000 });
+      const { contents } = response.data;
+      const parsedContent = parser(contents);
+      const rss = parsedContent.querySelector('rss');
+      if (rss === null) {
+        watchedState.status = 'fall';
+      } else {
+        const titleFeeds = parsedContent.querySelector('title');
+        const descriptionFeeds = parsedContent.querySelector('description');
+        const dataFeeds = {
+          title: titleFeeds.textContent,
+          description: descriptionFeeds.textContent,
+        };
+        watchedState.feeds.push(dataFeeds);
+        const itemsPosts = parsedContent.querySelectorAll('item');
+        itemsPosts.forEach((item) => {
+          watchedState.actualPostID += 1;
+          const link = item.querySelector('link');
+          const url = link.nextSibling.wholeText;
+          const title = item.querySelector('title');
+          const description = item.querySelector('description');
+          const dataPosts = {
+            id: watchedState.actualPostID,
+            title: title.textContent,
+            description: description.textContent,
+            url,
+          };
+          const equalPosts = (obj) => _.isEqual(obj, dataPosts);
+          if (!watchedState.posts.some(equalPosts)) {
+            watchedState.posts.push(dataPosts);
+          }
+        });
+        watchedState.urls.push(urlValue);
+        watchedState.status = 'valid';
+      }
+    } catch {
+      watchedState.status = 'networkError';
+    }
+  };
+  const update = () => {
+    let timerId = setTimeout(function tick() {
+      watchedState.urls.forEach(async (urlValue) => {
+        try {
+          const response = await axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(`${urlValue}`)}`, { timeout: 5000 });
+          const { contents } = response.data;
+          const parsedContent = parser(contents);
+          const rss = parsedContent.querySelector('rss');
+          if (rss !== null) {
+            const itemsPosts = parsedContent.querySelectorAll('item');
+            itemsPosts.forEach((item) => {
+              watchedState.actualPostID += 1;
+              const link = item.querySelector('link');
+              const url = link.nextSibling.wholeText;
+              const title = item.querySelector('title');
+              const description = item.querySelector('description');
+              const dataPosts = {
+                id: watchedState.actualPostID,
+                title: title.textContent,
+                description: description.textContent,
+                url,
+              };
+              const filter = watchedState.posts.filter((post) => post.title === dataPosts.title);
+              if (filter.length === 0) {
+                watchedState.posts.push(dataPosts);
+              }
+            });
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      });
+      console.log('update');
+      timerId = setTimeout(tick, 5000);
+    }, 5000);
+  };
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -75,43 +160,8 @@ export default async () => {
     const value = formData.get('url');
     const checkValid = await validate({ url: value }, watchedState.urls);
     if (isEmpty(checkValid)) {
-      try {
-        const response = await axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(`${value}`)}`, { timeout: 5000 });
-        const { contents } = response.data;
-        const parsedContent = parser(contents);
-        const rss = parsedContent.querySelector('rss');
-        if (rss === null) {
-          watchedState.status = 'fall';
-        } else {
-          watchedState.actualID += 1;
-          const titleFeeds = parsedContent.querySelector('title');
-          const descriptionFeeds = parsedContent.querySelector('description');
-          watchedState.feeds.push({
-            title: titleFeeds.textContent,
-            description: descriptionFeeds.textContent,
-          });
-          const itemsPosts = parsedContent.querySelectorAll('item');
-          itemsPosts.forEach((item) => {
-            watchedState.actualID += 1;
-            const link = item.querySelector('link');
-            const url = link.nextSibling.wholeText;
-            const title = item.querySelector('title');
-            const description = item.querySelector('description');
-            watchedState.posts.push({
-              id: watchedState.actualPostID,
-              title: title.textContent,
-              description: description.textContent,
-              url,
-            });
-          });
-          renderPosts(watchedState);
-          renderFeeds(watchedState);
-          watchedState.urls.push(value);
-          watchedState.status = 'valid';
-        }
-      } catch {
-        watchedState.status = 'networkError';
-      }
+      goNetwork(value);
+      update();
     }
     if (!isEmpty(checkValid)) {
       watchedState.error = checkValid;
