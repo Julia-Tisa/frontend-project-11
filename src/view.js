@@ -81,7 +81,7 @@ const renderPosts = (watchedState) => {
     li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
     const a = document.createElement('a');
     a.setAttribute('href', post.url);
-    if (post.status === 'new') {
+    if (watchedState.uiState.viewedPosts.indexOf(post.id.toString()) === -1) {
       a.classList.add('fw-bold');
     } else {
       a.classList.add('fw-normal', 'link-secondary');
@@ -90,13 +90,6 @@ const renderPosts = (watchedState) => {
     a.setAttribute('target', '_blank');
     a.setAttribute('rel', 'noopener noreferrer');
     a.textContent = post.title;
-    a.addEventListener('click', () => {
-      if (post.status === 'new') {
-        a.classList.remove('fw-bold');
-        a.classList.add('fw-normal', 'link-secondary');
-        post.status = 'viewed';
-      }
-    });
     const button = document.createElement('button');
     button.setAttribute('type', 'button');
     button.classList.add('btn', 'btn-outline-primary', 'btn-sm');
@@ -104,11 +97,41 @@ const renderPosts = (watchedState) => {
     button.setAttribute('data-bs-toggle', 'modal');
     button.setAttribute('data-bs-target', '#modal');
     button.textContent = 'Просмотр';
+    li.append(a);
+    li.append(button);
+    ulPosts.prepend(li);
+  });
+};
+
+const renderLinks = (watchedState) => {
+  const links = document.querySelectorAll('a');
+  links.forEach((link) => {
+    link.addEventListener('click', (e) => {
+      const { id } = link.dataset;
+      if (watchedState.uiState.viewedPosts.indexOf(id.toString()) === -1) {
+        e.preventDefault();
+        link.classList.remove('fw-bold');
+        link.classList.add('fw-normal', 'link-secondary');
+        watchedState.uiState.viewedPosts.push(id);
+      }
+    });
+  });
+};
+/* Не получилось убрать навешивание листенера при создании на кнопки закрытия,
+так как оно навешивается только при создании модального окна, и это только
+две кнопки для закрытия, если это принципиально, думаю, можно добавить
+в стейт флаг на закрытое/открытое модальное окно, и в слушателе вызывать рендер
+закрывающих кнопок. */
+const renderButtons = (watchedState) => {
+  const buttons = document.querySelectorAll('.btn-sm');
+  buttons.forEach((button) => {
     button.addEventListener('click', () => {
-      if (post.status === 'new') {
+      const { id } = button.dataset;
+      if (watchedState.uiState.viewedPosts.indexOf(id.toString()) === -1) {
+        const a = button.previousElementSibling;
         a.classList.remove('fw-bold');
         a.classList.add('fw-normal', 'link-secondary');
-        post.status = 'viewed';
+        watchedState.uiState.viewedPosts.push(id);
       }
       const body = document.querySelector('body');
       body.classList.add('modal-open');
@@ -118,7 +141,7 @@ const renderPosts = (watchedState) => {
       modalContainer.removeAttribute('aria-hidden');
       modalContainer.setAttribute('aria-model', 'true');
       modalContainer.setAttribute('style', 'display: block;');
-
+      const post = watchedState.posts.find((item) => item.id === Number(id));
       const h5 = document.querySelector('h5');
       h5.textContent = post.title;
       const description = document.querySelector('.modal-body.text-break');
@@ -138,10 +161,9 @@ const renderPosts = (watchedState) => {
         });
       });
     });
-    li.append(a);
-    li.append(button);
-    ulPosts.prepend(li);
   });
 };
 
-export { renderState, renderFeeds, renderPosts };
+export {
+  renderState, renderFeeds, renderPosts, renderLinks, renderButtons,
+};

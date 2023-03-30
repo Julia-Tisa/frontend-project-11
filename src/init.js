@@ -4,10 +4,21 @@ import onChange from 'on-change';
 import isEmpty from 'lodash/isEmpty.js';
 import i18n from 'i18next';
 import axios from 'axios';
-import { renderState, renderFeeds, renderPosts } from './view.js';
+import { 
+  renderState, renderFeeds, renderPosts, renderLinks, renderButtons,
+} from './view.js';
 import parser from './parser.js';
 import resources from '../locales/resources.js';
 import yupSetLocale from '../locales/yupLocales.js';
+
+/* По поводу слушателя, к сожалению, так и не разобралась, а в чате мы так
+ и не договорились ни о чем, поэтому с ним изменений нет. Еще не получилось
+ перенести навешивание листенров на ссылки и кнопки в листенере формы, так как почему-то
+ при вполне стандартном навешивании: находим все ссылки -> через форич вешаем отдельно
+ на каждую ссылку, - не срабатывает, навешивает на первые 3-6, и все, дальше не работает.
+ Пробовала и дождаться выполнения функций goNetwork & update, проверяла длинну
+ вернувшегося массива ссылок (он возвращается весь), но форич его весь не обходит.
+ Получилось только создать отдельные функции рендеринга и вызывать их в слушателе */
 
 export default async () => {
   const i18nInstance = i18n.createInstance();
@@ -24,6 +35,9 @@ export default async () => {
     feeds: [],
     posts: [],
     actualPostID: 0,
+    uiState: {
+      viewedPosts: [],
+    },
   };
 
   yupSetLocale(i18nInstance);
@@ -56,6 +70,8 @@ export default async () => {
     }
     if (path === 'posts') {
       renderPosts(watchedState);
+      renderLinks(watchedState);
+      renderButtons(watchedState);
     }
   });
 
@@ -113,8 +129,8 @@ export default async () => {
     const value = formData.get('url');
     const checkValid = await validate({ url: value }, watchedState.urls);
     if (isEmpty(checkValid)) {
-      goNetwork(value);
-      update();
+      await goNetwork(value);
+      await update();
     }
     if (!isEmpty(checkValid)) {
       watchedState.error = checkValid;
