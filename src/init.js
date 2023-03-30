@@ -8,7 +8,6 @@ import { renderState, renderFeeds, renderPosts } from './view.js';
 import parser from './parser.js';
 import resources from '../locales/resources.js';
 import yupSetLocale from '../locales/yupLocales.js';
-import { dop } from './parser.js';
 
 export default async () => {
   const i18nInstance = i18n.createInstance();
