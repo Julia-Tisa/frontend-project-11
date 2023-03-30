@@ -59,9 +59,17 @@ export default async () => {
     }
   });
 
+  const createUrl = (usersUrl) => {
+    const url = new URL('https://allorigins.hexlet.app/get');
+    url.searchParams.append('disableCache', 'true');
+    url.searchParams.append('url', usersUrl);
+    return url.toString();
+  };
+
   const goNetwork = async (urlValue) => {
     try {
-      const response = await axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(`${urlValue}`)}`, { timeout: 5000 });
+      const urlRequest = createUrl(urlValue);
+      const response = await axios.get(urlRequest, { timeout: 5000 });
       const { contents } = response.data;
       const parsedContent = parser(contents);
       const rss = parsedContent.querySelector('rss');
@@ -95,6 +103,7 @@ export default async () => {
         watchedState.status = 'valid';
       }
     } catch {
+      console.log(createUrl(urlValue));
       watchedState.status = 'networkError';
     }
   };
@@ -102,7 +111,8 @@ export default async () => {
     let timerId = setTimeout(function tick() {
       watchedState.urls.forEach(async (urlValue) => {
         try {
-          const response = await axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(`${urlValue}`)}`, { timeout: 5000 });
+          const urlRequest = createUrl(urlValue);
+          const response = await axios.get(urlRequest, { timeout: 5000 });
           const { contents } = response.data;
           const parsedContent = parser(contents);
           const rss = parsedContent.querySelector('rss');
