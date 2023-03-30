@@ -6,23 +6,14 @@ import i18n from 'i18next';
 import axios from 'axios';
 import { renderState, renderFeeds, renderPosts } from './view.js';
 import parser from './parser.js';
+import resources from '../locales/resources.js';
 
 export default async () => {
   const i18nInstance = i18n.createInstance();
   await i18nInstance.init({
     lng: 'ru',
     debug: false,
-    resources: {
-      ru: {
-        translation: {
-          success: 'RSS успешно загружен',
-          notOneOf: 'RSS уже существует',
-          notValid: 'Ссылка должна быть валидным URL',
-          fall: 'Ресурс не содержит валидный RSS',
-          networkError: 'Ошибка сети',
-        },
-      },
-    },
+    resources,
   });
 
   const state = {
