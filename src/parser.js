@@ -23,7 +23,6 @@ export default (content, actualPostID, posts) => {
     if (filter.length === 0) {
       id += 1;
       const dataPosts = {
-        status: 'new',
         id,
         title: title.textContent,
         description: description.textContent,
