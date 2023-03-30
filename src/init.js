@@ -8,6 +8,7 @@ import { renderState, renderFeeds, renderPosts } from './view.js';
 import parser from './parser.js';
 import resources from '../locales/resources.js';
 import yupSetLocale from '../locales/yupLocales.js';
+import { dop } from './parser.js';
 
 export default async () => {
   const i18nInstance = i18n.createInstance();
@@ -71,39 +72,17 @@ export default async () => {
       const urlRequest = createUrl(urlValue);
       const response = await axios.get(urlRequest, { timeout: 5000 });
       const { contents } = response.data;
-      const parsedContent = parser(contents);
-      const rss = parsedContent.querySelector('rss');
-      if (rss === null) {
+      const parsedContent = parser(contents, watchedState.actualPostID, watchedState.posts);
+      if (parsedContent === 'errorRss') {
         watchedState.status = 'fall';
       } else {
-        const titleFeeds = parsedContent.querySelector('title');
-        const descriptionFeeds = parsedContent.querySelector('description');
-        const dataFeeds = {
-          title: titleFeeds.textContent,
-          description: descriptionFeeds.textContent,
-        };
-        watchedState.feeds.push(dataFeeds);
-        const itemsPosts = parsedContent.querySelectorAll('item');
-        itemsPosts.forEach((item) => {
-          watchedState.actualPostID += 1;
-          const link = item.querySelector('link');
-          const url = link.nextSibling.wholeText;
-          const title = item.querySelector('title');
-          const description = item.querySelector('description');
-          const dataPosts = {
-            status: 'new',
-            id: watchedState.actualPostID,
-            title: title.textContent,
-            description: description.textContent,
-            url,
-          };
-          watchedState.posts.push(dataPosts);
-        });
+        watchedState.actualPostID = parsedContent.id;
+        watchedState.feeds.push(parsedContent.dataFeeds);
+        watchedState.posts = parsedContent.newPosts;
         watchedState.urls.push(urlValue);
         watchedState.status = 'valid';
       }
     } catch {
-      console.log(createUrl(urlValue));
       watchedState.status = 'networkError';
     }
   };
@@ -114,28 +93,10 @@ export default async () => {
           const urlRequest = createUrl(urlValue);
           const response = await axios.get(urlRequest, { timeout: 5000 });
           const { contents } = response.data;
-          const parsedContent = parser(contents);
-          const rss = parsedContent.querySelector('rss');
-          if (rss !== null) {
-            const itemsPosts = parsedContent.querySelectorAll('item');
-            itemsPosts.forEach((item) => {
-              watchedState.actualPostID += 1;
-              const link = item.querySelector('link');
-              const url = link.nextSibling.wholeText;
-              const title = item.querySelector('title');
-              const description = item.querySelector('description');
-              const dataPosts = {
-                status: 'new',
-                id: watchedState.actualPostID,
-                title: title.textContent,
-                description: description.textContent,
-                url,
-              };
-              const filter = watchedState.posts.filter((post) => post.title === dataPosts.title);
-              if (filter.length === 0) {
-                watchedState.posts.push(dataPosts);
-              }
-            });
+          const parsedContent = parser(contents, watchedState.actualPostID, watchedState.posts);
+          if (parsedContent !== 'errorRss') {
+            watchedState.actualPostID = parsedContent.id;
+            watchedState.posts = parsedContent.newPosts;
           }
         } catch (err) {
           console.log(err);
