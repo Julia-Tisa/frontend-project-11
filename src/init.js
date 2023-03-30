@@ -7,6 +7,7 @@ import axios from 'axios';
 import { renderState, renderFeeds, renderPosts } from './view.js';
 import parser from './parser.js';
 import resources from '../locales/resources.js';
+import yupSetLocale from '../locales/yupLocales.js';
 
 export default async () => {
   const i18nInstance = i18n.createInstance();
@@ -25,14 +26,7 @@ export default async () => {
     actualPostID: 0,
   };
 
-  yup.setLocale({
-    mixed: {
-      notOneOf: i18nInstance.t('notOneOf'),
-    },
-    string: {
-      url: i18nInstance.t('notValid'),
-    },
-  });
+  yupSetLocale(i18nInstance);
 
   const newShema = (urls) => {
     const schema = yup.object({
