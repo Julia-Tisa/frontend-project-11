@@ -4,7 +4,7 @@ import onChange from 'on-change';
 import isEmpty from 'lodash/isEmpty.js';
 import i18n from 'i18next';
 import axios from 'axios';
-import { 
+import {
   renderState, renderFeeds, renderPosts, renderLinks, renderButtons,
 } from './view.js';
 import parser from './parser.js';
