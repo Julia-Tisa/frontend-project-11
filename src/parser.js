@@ -1,9 +1,9 @@
 export default (content, actualPostID, posts) => {
   const domParser = new DOMParser();
-  const parsedContent = domParser.parseFromString(content, 'text/html');
+  const parsedContent = domParser.parseFromString(content, 'text/xml');
   const rss = parsedContent.querySelector('rss');
-  if (rss === null) {
-    return 'errorRss';
+  if (!rss) {
+    return rss;
   }
   const titleFeeds = parsedContent.querySelector('title');
   const descriptionFeeds = parsedContent.querySelector('description');
@@ -16,7 +16,7 @@ export default (content, actualPostID, posts) => {
   const itemsPosts = parsedContent.querySelectorAll('item');
   itemsPosts.forEach((item) => {
     const link = item.querySelector('link');
-    const url = link.nextSibling.wholeText;
+    const url = link.textContent;
     const title = item.querySelector('title');
     const description = item.querySelector('description');
     const filter = newPosts.filter((post) => post.title === title.textContent);

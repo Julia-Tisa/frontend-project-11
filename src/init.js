@@ -8,17 +8,8 @@ import {
   renderState, renderFeeds, renderPosts, renderLinks, renderButtons,
 } from './view.js';
 import parser from './parser.js';
-import resources from '../locales/resources.js';
-import yupSetLocale from '../locales/yupLocales.js';
-
-/* По поводу слушателя, к сожалению, так и не разобралась, а в чате мы так
- и не договорились ни о чем, поэтому с ним изменений нет. Еще не получилось
- перенести навешивание листенров на ссылки и кнопки в листенере формы, так как почему-то
- при вполне стандартном навешивании: находим все ссылки -> через форич вешаем отдельно
- на каждую ссылку, - не срабатывает, навешивает на первые 3-6, и все, дальше не работает.
- Пробовала и дождаться выполнения функций goNetwork & update, проверяла длинну
- вернувшегося массива ссылок (он возвращается весь), но форич его весь не обходит.
- Получилось только создать отдельные функции рендеринга и вызывать их в слушателе */
+import resources from './locales/resources.js';
+import yupSetLocale from './locales/yupLocales.js';
 
 export default async () => {
   const i18nInstance = i18n.createInstance();
@@ -40,7 +31,7 @@ export default async () => {
     },
   };
 
-  yupSetLocale(i18nInstance);
+  yupSetLocale();
 
   const newShema = (urls) => {
     const schema = yup.object({
@@ -88,14 +79,14 @@ export default async () => {
       const response = await axios.get(urlRequest, { timeout: 5000 });
       const { contents } = response.data;
       const parsedContent = parser(contents, watchedState.actualPostID, watchedState.posts);
-      if (parsedContent === 'errorRss') {
-        watchedState.status = 'fall';
-      } else {
+      if (parsedContent) {
         watchedState.actualPostID = parsedContent.id;
         watchedState.feeds.push(parsedContent.dataFeeds);
         watchedState.posts = parsedContent.newPosts;
         watchedState.urls.push(urlValue);
         watchedState.status = 'valid';
+      } else {
+        watchedState.status = 'fall';
       }
     } catch {
       watchedState.status = 'networkError';

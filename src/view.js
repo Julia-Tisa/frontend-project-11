@@ -1,5 +1,3 @@
-import has from 'lodash/has.js';
-
 const form = document.querySelector('form');
 const input = document.querySelector('#url-input');
 const feedback = document.querySelector('.feedback');
@@ -11,11 +9,7 @@ const renderState = (value, watchedState, i18nInstance) => {
     feedback.classList.remove('text-danger');
     feedback.classList.remove('text-success');
     feedback.classList.add('text-danger');
-    if (has(error, 'url')) {
-      feedback.textContent = `${error.url.message}`;
-    } else {
-      feedback.textContent = error;
-    }
+    feedback.textContent = i18nInstance.t(`${error.url.message}`);
   }
   if (value === 'valid') {
     input.classList.remove('is-invalid');
@@ -117,11 +111,7 @@ const renderLinks = (watchedState) => {
     });
   });
 };
-/* Не получилось убрать навешивание листенера при создании на кнопки закрытия,
-так как оно навешивается только при создании модального окна, и это только
-две кнопки для закрытия, если это принципиально, думаю, можно добавить
-в стейт флаг на закрытое/открытое модальное окно, и в слушателе вызывать рендер
-закрывающих кнопок. */
+
 const renderButtons = (watchedState) => {
   const buttons = document.querySelectorAll('.btn-sm');
   buttons.forEach((button) => {
