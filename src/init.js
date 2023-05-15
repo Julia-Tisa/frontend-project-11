@@ -1,12 +1,9 @@
 import * as yup from 'yup';
 import keyBy from 'lodash/keyBy.js';
-import onChange from 'on-change';
 import isEmpty from 'lodash/isEmpty.js';
 import i18n from 'i18next';
 import axios from 'axios';
-import {
-  renderState, renderFeeds, renderPosts, renderLinks, renderButtons,
-} from './view.js';
+import render from './view.js';
 import parser from './parser.js';
 import resources from './locales/resources.js';
 import yupSetLocale from './locales/yupLocales.js';
@@ -52,19 +49,7 @@ export default async () => {
 
   const form = document.querySelector('form');
 
-  const watchedState = onChange(state, (path, value) => {
-    if (path === 'status') {
-      renderState(value, watchedState, i18nInstance);
-    }
-    if (path === 'feeds') {
-      renderFeeds(watchedState);
-    }
-    if (path === 'posts') {
-      renderPosts(watchedState);
-      renderLinks(watchedState);
-      renderButtons(watchedState);
-    }
-  });
+  const watchedState = render(state, i18nInstance);
 
   const createUrl = (usersUrl) => {
     const url = new URL('https://allorigins.hexlet.app/get');

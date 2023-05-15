@@ -34,6 +34,7 @@ module.exports = {
   plugins: [
     new MiniCssExtractPlugin(),
     new HtmlWebpackPlugin({
+      inject: false,
       template: path.join(__dirname, 'src', 'template.html'),
     }),
   ],
