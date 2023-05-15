@@ -64,21 +64,21 @@ export default async () => {
       const response = await axios.get(urlRequest, { timeout: 5000 });
       const { contents } = response.data;
       const parsedContent = parser(contents);
-      if (parsedContent) {
-        utils.urls.push(urlValue);
-        utils.feeds.push(parsedContent.dataFeed);
-        parsedContent.dataPosts.forEach((itemPost) => {
-          const newPost = itemPost;
-          utils.actualPostID += 1;
-          newPost.id = utils.actualPostID;
-          utils.posts.push(newPost);
-        });
-        utils.status = 'valid';
-      } else {
+      utils.urls.push(urlValue);
+      utils.feeds.push(parsedContent.dataFeed);
+      parsedContent.dataPosts.forEach((itemPost) => {
+        const newPost = itemPost;
+        utils.actualPostID += 1;
+        newPost.id = utils.actualPostID;
+        utils.posts.push(newPost);
+      });
+      utils.status = 'valid';
+    } catch (err) {
+      if (err.isParsingError) {
         utils.status = 'fall';
+      } else {
+        utils.status = 'networkError';
       }
-    } catch {
-      utils.status = 'networkError';
     }
   };
   const update = () => {
@@ -89,17 +89,15 @@ export default async () => {
           const response = await axios.get(urlRequest, { timeout: 5000 });
           const { contents } = response.data;
           const parsedContent = parser(contents);
-          if (parsedContent) {
-            parsedContent.dataPosts.forEach((itemPost) => {
-              const filter = utils.posts.filter((post) => post.title === itemPost.title);
-              if (filter.length === 0) {
-                utils.actualPostID += 1;
-                const newPost = itemPost;
-                newPost.id = utils.actualPostID;
-                utils.posts.push(newPost);
-              }
-            });
-          }
+          parsedContent.dataPosts.forEach((itemPost) => {
+            const filter = utils.posts.filter((post) => post.title === itemPost.title);
+            if (filter.length === 0) {
+              utils.actualPostID += 1;
+              const newPost = itemPost;
+              newPost.id = utils.actualPostID;
+              utils.posts.push(newPost);
+            }
+          });
         } catch (err) {
           console.log(err);
         }

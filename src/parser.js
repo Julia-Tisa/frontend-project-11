@@ -1,9 +1,11 @@
 export default (content) => {
   const domParser = new DOMParser();
   const parsedContent = domParser.parseFromString(content, 'text/xml');
-  const rss = parsedContent.querySelector('rss');
-  if (!rss) {
-    return rss;
+  const parseError = parsedContent.querySelector('parsererror');
+  if (parseError) {
+    const error = new Error(parseError.textContent);
+    error.isParsingError = true;
+    throw error;
   }
   const titleFeeds = parsedContent.querySelector('title');
   const descriptionFeeds = parsedContent.querySelector('description');
@@ -11,7 +13,6 @@ export default (content) => {
     title: titleFeeds.textContent,
     description: descriptionFeeds.textContent,
   };
-  // let id = actualPostID;
   const dataPosts = [];
   const itemsPosts = parsedContent.querySelectorAll('item');
   itemsPosts.forEach((item) => {
@@ -19,9 +20,6 @@ export default (content) => {
     const url = link.textContent;
     const title = item.querySelector('title');
     const description = item.querySelector('description');
-    /* const filter = newPosts.filter((post) => post.title === title.textContent);
-    if (filter.length === 0) {
-      id += 1; */
     const post = {
       title: title.textContent,
       description: description.textContent,
