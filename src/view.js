@@ -98,16 +98,14 @@ const renderPosts = (watchedState) => {
 };
 
 const renderLinks = (watchedState) => {
-  const links = document.querySelectorAll('a');
+  const links = document.querySelectorAll('a.fw-bold');
   links.forEach((link) => {
     link.addEventListener('click', (e) => {
+      e.preventDefault();
       const { id } = link.dataset;
-      if (watchedState.uiState.viewedPosts.indexOf(id.toString()) === -1) {
-        e.preventDefault();
-        link.classList.remove('fw-bold');
-        link.classList.add('fw-normal', 'link-secondary');
-        watchedState.uiState.viewedPosts.push(id);
-      }
+      link.classList.remove('fw-bold');
+      link.classList.add('fw-normal', 'link-secondary');
+      watchedState.uiState.viewedPosts.push(id);
     });
   });
 };
@@ -117,7 +115,7 @@ const renderButtons = (watchedState) => {
   buttons.forEach((button) => {
     button.addEventListener('click', () => {
       const { id } = button.dataset;
-      if (watchedState.uiState.viewedPosts.indexOf(id.toString()) === -1) {
+      if (watchedState.uiState.viewedPosts.indexOf(id) === -1) {
         const a = button.previousElementSibling;
         a.classList.remove('fw-bold');
         a.classList.add('fw-normal', 'link-secondary');

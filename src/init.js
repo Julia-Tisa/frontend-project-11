@@ -78,12 +78,16 @@ export default async () => {
       const urlRequest = createUrl(urlValue);
       const response = await axios.get(urlRequest, { timeout: 5000 });
       const { contents } = response.data;
-      const parsedContent = parser(contents, watchedState.actualPostID, watchedState.posts);
+      const parsedContent = parser(contents);
       if (parsedContent) {
-        watchedState.actualPostID = parsedContent.id;
-        watchedState.feeds.push(parsedContent.dataFeeds);
-        watchedState.posts = parsedContent.newPosts;
         watchedState.urls.push(urlValue);
+        watchedState.feeds.push(parsedContent.dataFeed);
+        parsedContent.dataPosts.forEach((itemPost) => {
+          const newPost = itemPost;
+          watchedState.actualPostID += 1;
+          newPost.id = watchedState.actualPostID;
+          watchedState.posts.push(newPost);
+        });
         watchedState.status = 'valid';
       } else {
         watchedState.status = 'fall';
@@ -99,10 +103,17 @@ export default async () => {
           const urlRequest = createUrl(urlValue);
           const response = await axios.get(urlRequest, { timeout: 5000 });
           const { contents } = response.data;
-          const parsedContent = parser(contents, watchedState.actualPostID, watchedState.posts);
-          if (parsedContent !== 'errorRss') {
-            watchedState.actualPostID = parsedContent.id;
-            watchedState.posts = parsedContent.newPosts;
+          const parsedContent = parser(contents);
+          if (parsedContent) {
+            parsedContent.dataPosts.forEach((itemPost) => {
+              const filter = watchedState.posts.filter((post) => post.title === itemPost.title);
+              if (filter.length === 0) {
+                watchedState.actualPostID += 1;
+                const newPost = itemPost;
+                newPost.id = watchedState.actualPostID;
+                watchedState.posts.push(newPost);
+              }
+            });
           }
         } catch (err) {
           console.log(err);

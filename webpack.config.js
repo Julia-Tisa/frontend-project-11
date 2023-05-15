@@ -1,6 +1,5 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
-const autoprefixer = require('autoprefixer');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
@@ -35,7 +34,6 @@ module.exports = {
   plugins: [
     new MiniCssExtractPlugin(),
     new HtmlWebpackPlugin({
-      inject: false,
       template: path.join(__dirname, 'src', 'template.html'),
     }),
   ],
