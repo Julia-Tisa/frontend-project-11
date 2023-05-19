@@ -1,53 +1,48 @@
+/* eslint-disable no-param-reassign */
 import onChange from 'on-change';
 
-const render = (state, i18nInstance) => {
-  const form = document.querySelector('form');
-  const input = document.querySelector('#url-input');
-  const feedback = document.querySelector('.feedback');
-
+const render = (state, i18nInstance, elements) => {
   const renderState = (value, watchedState, i18n) => {
     if (value === 'invalid') {
       const { error } = watchedState;
-      input.classList.add('is-invalid');
-      feedback.classList.remove('text-danger');
-      feedback.classList.remove('text-success');
-      feedback.classList.add('text-danger');
-      feedback.textContent = i18n.t(`${error.url.message}`);
+      elements.input.classList.add('is-invalid');
+      elements.feedback.classList.remove('text-danger');
+      elements.feedback.classList.remove('text-success');
+      elements.feedback.classList.add('text-danger');
+      elements.feedback.textContent = i18n.t(`${error.url.message}`);
     }
     if (value === 'valid') {
-      input.classList.remove('is-invalid');
-      feedback.classList.remove('text-danger');
-      feedback.classList.remove('text-success');
-      feedback.classList.add('text-success');
-      feedback.textContent = i18n.t('success');
-      form.reset();
+      elements.input.classList.remove('is-invalid');
+      elements.feedback.classList.remove('text-danger');
+      elements.feedback.classList.remove('text-success');
+      elements.feedback.classList.add('text-success');
+      elements.feedback.textContent = i18n.t('success');
+      elements.form.reset();
     }
     if (value === 'fall') {
-      input.classList.remove('is-invalid');
-      feedback.classList.remove('text-danger');
-      feedback.classList.remove('text-success');
-      feedback.classList.add('text-danger');
-      feedback.textContent = i18n.t('fall');
+      elements.input.classList.remove('is-invalid');
+      elements.feedback.classList.remove('text-danger');
+      elements.feedback.classList.remove('text-success');
+      elements.feedback.classList.add('text-danger');
+      elements.feedback.textContent = i18n.t('fall');
     }
     if (value === 'networkError') {
-      input.classList.remove('is-invalid');
-      feedback.classList.remove('text-danger');
-      feedback.classList.remove('text-success');
-      feedback.classList.add('text-danger');
-      feedback.textContent = i18n.t('networkError');
+      elements.input.classList.remove('is-invalid');
+      elements.feedback.classList.remove('text-danger');
+      elements.feedback.classList.remove('text-success');
+      elements.feedback.classList.add('text-danger');
+      elements.feedback.textContent = i18n.t('networkError');
     }
   };
 
   const renderFeeds = (watchedState) => {
-    const h2Container = document.querySelector('.card-body.feeds');
     const h2 = document.createElement('h2');
     h2.classList.add('card-title', 'h4');
     h2.textContent = 'Фиды';
-    h2Container.innerHTML = '';
-    h2Container.append(h2);
+    elements.containerFeeds.innerHTML = '';
+    elements.containerFeeds.append(h2);
 
-    const ulContainer = document.querySelector('.list-group.feeds');
-    ulContainer.innerHTML = '';
+    elements.ulFeeds.innerHTML = '';
     watchedState.feeds.forEach((feed) => {
       const li = document.createElement('li');
       li.classList.add('list-group-item', 'border-0', 'border-end-0');
@@ -59,20 +54,18 @@ const render = (state, i18nInstance) => {
       p.textContent = feed.description;
       li.append(p);
       li.prepend(h3);
-      ulContainer.prepend(li);
+      elements.ulFeeds.prepend(li);
     });
   };
 
   const renderPosts = (watchedState) => {
-    const containerPosts = document.querySelector('.card-body.posts');
-    containerPosts.innerHTML = '';
+    elements.containerPosts.innerHTML = '';
     const h2Posts = document.createElement('h2');
     h2Posts.classList.add('card-title', 'h4');
     h2Posts.textContent = 'Посты';
-    containerPosts.append(h2Posts);
+    elements.containerPosts.append(h2Posts);
 
-    const ulPosts = document.querySelector('.list-group.posts');
-    ulPosts.innerHTML = '';
+    elements.ulPosts.innerHTML = '';
     watchedState.posts.forEach((post) => {
       const li = document.createElement('li');
       li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
@@ -96,7 +89,7 @@ const render = (state, i18nInstance) => {
       button.textContent = 'Просмотр';
       li.append(a);
       li.append(button);
-      ulPosts.prepend(li);
+      elements.ulPosts.prepend(li);
     });
   };
 
@@ -123,14 +116,6 @@ const render = (state, i18nInstance) => {
           a.classList.add('fw-normal', 'link-secondary');
           watchedState.uiState.viewedPosts.push(id);
         }
-        const body = document.querySelector('body');
-        body.classList.add('modal-open');
-        body.setAttribute('style', 'overflow: hidden; padding-right: 0px;');
-        const modalContainer = document.querySelector('.modal.fade');
-        modalContainer.classList.add('show');
-        modalContainer.removeAttribute('aria-hidden');
-        modalContainer.setAttribute('aria-model', 'true');
-        modalContainer.setAttribute('style', 'display: block;');
         const post = watchedState.posts.find((item) => item.id === Number(id));
         const h5 = document.querySelector('h5');
         h5.textContent = post.title;
@@ -139,17 +124,6 @@ const render = (state, i18nInstance) => {
         const aRead = document.querySelector('a');
         aRead.removeAttribute('href');
         aRead.setAttribute('href', post.url);
-        const closeButtons = document.querySelectorAll('[data-bs-dismiss="modal"]');
-        closeButtons.forEach((closeButton) => {
-          closeButton.addEventListener('click', () => {
-            body.classList.remove('modal-open');
-            body.removeAttribute('style');
-            modalContainer.classList.remove('show');
-            modalContainer.setAttribute('aria-hidden', 'true');
-            modalContainer.removeAttribute('aria-model');
-            modalContainer.removeAttribute('style');
-          });
-        });
       });
     });
   };
@@ -168,7 +142,7 @@ const render = (state, i18nInstance) => {
     }
   });
 
-  return watchedState;
+  return { watchedState };
 };
 
 export default render;

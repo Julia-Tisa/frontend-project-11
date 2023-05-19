@@ -1,10 +1,10 @@
+import 'bootstrap';
 import * as yup from 'yup';
 import keyBy from 'lodash/keyBy.js';
 import isEmpty from 'lodash/isEmpty.js';
 import i18n from 'i18next';
-import axios from 'axios';
 import render from './view.js';
-import parser from './parser.js';
+import { goNetwork, update } from './requests.js';
 import resources from './locales/resources.js';
 import yupSetLocale from './locales/yupLocales.js';
 
@@ -47,75 +47,27 @@ export default async () => {
     }
   };
 
-  const form = document.querySelector('form');
-
-  const watchedState = render(state, i18nInstance);
-
-  const createUrl = (usersUrl) => {
-    const url = new URL('https://allorigins.hexlet.app/get');
-    url.searchParams.append('disableCache', 'true');
-    url.searchParams.append('url', usersUrl);
-    return url.toString();
+  const elements = {
+    form: document.querySelector('form'), 
+    input: document.querySelector('#url-input'),
+    feedback: document.querySelector('.feedback'),
+    containerFeeds: document.querySelector('.card-body.feeds'),
+    ulFeeds: document.querySelector('.list-group.feeds'),
+    containerPosts: document.querySelector('.card-body.posts'),
+    ulPosts: document.querySelector('.list-group.posts'),
   };
 
-  const goNetwork = async (urlValue) => {
-    try {
-      const urlRequest = createUrl(urlValue);
-      const response = await axios.get(urlRequest, { timeout: 5000 });
-      const { contents } = response.data;
-      const parsedContent = parser(contents);
-      watchedState.urls.push(urlValue);
-      watchedState.feeds.push(parsedContent.dataFeed);
-      parsedContent.dataPosts.forEach((itemPost) => {
-        const newPost = itemPost;
-        watchedState.actualPostID += 1;
-        newPost.id = watchedState.actualPostID;
-        watchedState.posts.push(newPost);
-      });
-      watchedState.status = 'valid';
-    } catch (err) {
-      if (err.isParsingError) {
-        watchedState.status = 'fall';
-      } else {
-        watchedState.status = 'networkError';
-      }
-    }
-  };
-  const update = () => {
-    let timerId = setTimeout(function tick() {
-      watchedState.urls.forEach(async (urlValue) => {
-        try {
-          const urlRequest = createUrl(urlValue);
-          const response = await axios.get(urlRequest, { timeout: 5000 });
-          const { contents } = response.data;
-          const parsedContent = parser(contents);
-          parsedContent.dataPosts.forEach((itemPost) => {
-            const filter = watchedState.posts.filter((post) => post.title === itemPost.title);
-            if (filter.length === 0) {
-              watchedState.actualPostID += 1;
-              const newPost = itemPost;
-              newPost.id = watchedState.actualPostID;
-              watchedState.posts.push(newPost);
-            }
-          });
-        } catch (err) {
-          console.log(err);
-        }
-      });
-      timerId = setTimeout(tick, 5000);
-    }, 5000);
-    console.log(timerId);
-  };
+  const { watchedState } = render(state, i18nInstance, elements);
 
-  form.addEventListener('submit', async (e) => {
+  elements.form.addEventListener('submit', async (e) => {
     e.preventDefault();
     watchedState.status = 'filling';
-    const formData = new FormData(form);
+    const formData = new FormData(elements.form);
     const value = formData.get('url');
     const checkValid = await validate({ url: value }, watchedState.urls);
     if (isEmpty(checkValid)) {
-      await goNetwork(value);
-      await update();
+      await goNetwork(value, watchedState);
+      await update(watchedState);
     }
     if (!isEmpty(checkValid)) {
       watchedState.error = checkValid;
