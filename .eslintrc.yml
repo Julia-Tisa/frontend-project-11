@@ -8,6 +8,8 @@ parserOptions:
   sourceType: module
 rules: {
   no-console: off,
+  no-param-reassign: off,
+  
   import/extensions: off,
   testing-library/render-result-naming-convention: off,
 }

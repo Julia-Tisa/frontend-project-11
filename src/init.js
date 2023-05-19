@@ -48,7 +48,7 @@ export default async () => {
   };
 
   const elements = {
-    form: document.querySelector('form'), 
+    form: document.querySelector('form'),
     input: document.querySelector('#url-input'),
     feedback: document.querySelector('.feedback'),
     containerFeeds: document.querySelector('.card-body.feeds'),
