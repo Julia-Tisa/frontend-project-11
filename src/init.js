@@ -49,7 +49,7 @@ export default async () => {
 
   const form = document.querySelector('form');
 
-  const utils = render(state, i18nInstance);
+  const watchedState = render(state, i18nInstance);
 
   const createUrl = (usersUrl) => {
     const url = new URL('https://allorigins.hexlet.app/get');
@@ -64,38 +64,38 @@ export default async () => {
       const response = await axios.get(urlRequest, { timeout: 5000 });
       const { contents } = response.data;
       const parsedContent = parser(contents);
-      utils.urls.push(urlValue);
-      utils.feeds.push(parsedContent.dataFeed);
+      watchedState.urls.push(urlValue);
+      watchedState.feeds.push(parsedContent.dataFeed);
       parsedContent.dataPosts.forEach((itemPost) => {
         const newPost = itemPost;
-        utils.actualPostID += 1;
-        newPost.id = utils.actualPostID;
-        utils.posts.push(newPost);
+        watchedState.actualPostID += 1;
+        newPost.id = watchedState.actualPostID;
+        watchedState.posts.push(newPost);
       });
-      utils.status = 'valid';
+      watchedState.status = 'valid';
     } catch (err) {
       if (err.isParsingError) {
-        utils.status = 'fall';
+        watchedState.status = 'fall';
       } else {
-        utils.status = 'networkError';
+        watchedState.status = 'networkError';
       }
     }
   };
   const update = () => {
     let timerId = setTimeout(function tick() {
-      utils.urls.forEach(async (urlValue) => {
+      watchedState.urls.forEach(async (urlValue) => {
         try {
           const urlRequest = createUrl(urlValue);
           const response = await axios.get(urlRequest, { timeout: 5000 });
           const { contents } = response.data;
           const parsedContent = parser(contents);
           parsedContent.dataPosts.forEach((itemPost) => {
-            const filter = utils.posts.filter((post) => post.title === itemPost.title);
+            const filter = watchedState.posts.filter((post) => post.title === itemPost.title);
             if (filter.length === 0) {
-              utils.actualPostID += 1;
+              watchedState.actualPostID += 1;
               const newPost = itemPost;
-              newPost.id = utils.actualPostID;
-              utils.posts.push(newPost);
+              newPost.id = watchedState.actualPostID;
+              watchedState.posts.push(newPost);
             }
           });
         } catch (err) {
@@ -109,17 +109,17 @@ export default async () => {
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    utils.status = 'filling';
+    watchedState.status = 'filling';
     const formData = new FormData(form);
     const value = formData.get('url');
-    const checkValid = await validate({ url: value }, utils.urls);
+    const checkValid = await validate({ url: value }, watchedState.urls);
     if (isEmpty(checkValid)) {
       await goNetwork(value);
       await update();
     }
     if (!isEmpty(checkValid)) {
-      utils.error = checkValid;
-      utils.status = 'invalid';
+      watchedState.error = checkValid;
+      watchedState.status = 'invalid';
     }
   });
 };

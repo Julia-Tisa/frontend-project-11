@@ -1,7 +1,7 @@
 {
   "name": "@hexlet/code",
   "version": "1.0.0",
-  "description": "[![Actions Status](https://github.com/Julia-Tisa/frontend-project-11/workflows/hexlet-check/badge.svg)](https://github.com/Julia-Tisa/frontend-project-11/actions)",
+  "description": "Rss Reader is a service for aggregating RSS feeds, with the help of which it is convenient to read a variety of sources, for example, blogs. It allows you to add an unlimited number of RSS feeds, updates them itself and adds new entries to the general stream.",
   "main": "index.js",
   "scripts": {
     "serve": "webpack serve --open --mode development",
