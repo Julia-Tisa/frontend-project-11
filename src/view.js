@@ -1,4 +1,3 @@
-/* eslint-disable no-param-reassign */
 import onChange from 'on-change';
 
 const render = (state, i18nInstance, elements) => {
@@ -39,10 +38,10 @@ const render = (state, i18nInstance, elements) => {
     const h2 = document.createElement('h2');
     h2.classList.add('card-title', 'h4');
     h2.textContent = 'Фиды';
-    elements.containerFeeds.innerHTML = '';
-    elements.containerFeeds.append(h2);
+    elements.headerFeeds.innerHTML = '';
+    elements.headerFeeds.append(h2);
 
-    elements.ulFeeds.innerHTML = '';
+    elements.listFeeds.innerHTML = '';
     watchedState.feeds.forEach((feed) => {
       const li = document.createElement('li');
       li.classList.add('list-group-item', 'border-0', 'border-end-0');
@@ -54,18 +53,18 @@ const render = (state, i18nInstance, elements) => {
       p.textContent = feed.description;
       li.append(p);
       li.prepend(h3);
-      elements.ulFeeds.prepend(li);
+      elements.listFeeds.prepend(li);
     });
   };
 
   const renderPosts = (watchedState) => {
-    elements.containerPosts.innerHTML = '';
+    elements.headerPosts.innerHTML = '';
     const h2Posts = document.createElement('h2');
     h2Posts.classList.add('card-title', 'h4');
     h2Posts.textContent = 'Посты';
-    elements.containerPosts.append(h2Posts);
+    elements.headerPosts.append(h2Posts);
 
-    elements.ulPosts.innerHTML = '';
+    elements.listPosts.innerHTML = '';
     watchedState.posts.forEach((post) => {
       const li = document.createElement('li');
       li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
@@ -89,42 +88,7 @@ const render = (state, i18nInstance, elements) => {
       button.textContent = 'Просмотр';
       li.append(a);
       li.append(button);
-      elements.ulPosts.prepend(li);
-    });
-  };
-
-  const renderLinks = (watchedState) => {
-    const links = document.querySelectorAll('a.fw-bold');
-    links.forEach((link) => {
-      link.addEventListener('click', () => {
-        const { id } = link.dataset;
-        link.classList.remove('fw-bold');
-        link.classList.add('fw-normal', 'link-secondary');
-        watchedState.uiState.viewedPosts.push(id);
-      });
-    });
-  };
-
-  const renderButtons = (watchedState) => {
-    const buttons = document.querySelectorAll('.btn-sm');
-    buttons.forEach((button) => {
-      button.addEventListener('click', () => {
-        const { id } = button.dataset;
-        if (watchedState.uiState.viewedPosts.indexOf(id) === -1) {
-          const a = button.previousElementSibling;
-          a.classList.remove('fw-bold');
-          a.classList.add('fw-normal', 'link-secondary');
-          watchedState.uiState.viewedPosts.push(id);
-        }
-        const post = watchedState.posts.find((item) => item.id === Number(id));
-        const h5 = document.querySelector('h5');
-        h5.textContent = post.title;
-        const description = document.querySelector('.modal-body.text-break');
-        description.textContent = post.description;
-        const aRead = document.querySelector('a');
-        aRead.removeAttribute('href');
-        aRead.setAttribute('href', post.url);
-      });
+      elements.listPosts.prepend(li);
     });
   };
 
@@ -137,8 +101,6 @@ const render = (state, i18nInstance, elements) => {
     }
     if (path === 'posts') {
       renderPosts(state);
-      renderLinks(state);
-      renderButtons(state);
     }
   });
 

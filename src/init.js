@@ -4,74 +4,106 @@ import keyBy from 'lodash/keyBy.js';
 import isEmpty from 'lodash/isEmpty.js';
 import i18n from 'i18next';
 import render from './view.js';
-import { goNetwork, update } from './requests.js';
+import { firstRequestData, updateData } from './requests.js';
 import resources from './locales/resources.js';
 import yupSetLocale from './locales/yupLocales.js';
 
-export default async () => {
+export default () => {
   const i18nInstance = i18n.createInstance();
-  await i18nInstance.init({
+  return i18nInstance.init({
     lng: 'ru',
     debug: false,
     resources,
-  });
+  })
+    .then(() => {
+      const state = {
+        status: 'filling',
+        urls: [],
+        error: '',
+        feeds: [],
+        posts: [],
+        actualPostID: 0,
+        uiState: {
+          viewedPosts: [],
+        },
+      };
 
-  const state = {
-    status: 'filling',
-    urls: [],
-    error: '',
-    feeds: [],
-    posts: [],
-    actualPostID: 0,
-    uiState: {
-      viewedPosts: [],
-    },
-  };
+      yupSetLocale();
 
-  yupSetLocale();
+      const newShema = (urls) => {
+        const schema = yup.object({
+          url: yup.string().url().notOneOf(urls),
+        });
+        return schema;
+      };
 
-  const newShema = (urls) => {
-    const schema = yup.object({
-      url: yup.string().url().notOneOf(urls),
+      const validate = (fields, urls) => {
+        const s = newShema(urls);
+        return s.validate(fields, { abortEarly: false })
+          .then(() => ({}))
+          .catch((err) => keyBy(err.inner, 'path'));
+      };
+
+      const elements = {
+        form: document.querySelector('form'),
+        input: document.querySelector('#url-input'),
+        feedback: document.querySelector('.feedback'),
+        headerFeeds: document.querySelector('.card-body.feeds'),
+        listFeeds: document.querySelector('.list-group.feeds'),
+        headerPosts: document.querySelector('.card-body.posts'),
+        listPosts: document.querySelector('.list-group.posts'),
+      };
+
+      const { watchedState } = render(state, i18nInstance, elements);
+
+      elements.listPosts.addEventListener('click', () => {
+        const links = document.querySelectorAll('a.fw-bold');
+        links.forEach((link) => {
+          link.addEventListener('click', () => {
+            const { id } = link.dataset;
+            link.classList.remove('fw-bold');
+            link.classList.add('fw-normal', 'link-secondary');
+            watchedState.uiState.viewedPosts.push(id);
+          }, true);
+        });
+
+        const buttons = document.querySelectorAll('.btn-sm');
+        buttons.forEach((button) => {
+          button.addEventListener('click', () => {
+            const { id } = button.dataset;
+            if (watchedState.uiState.viewedPosts.indexOf(id) === -1) {
+              const a = button.previousElementSibling;
+              a.classList.remove('fw-bold');
+              a.classList.add('fw-normal', 'link-secondary');
+              watchedState.uiState.viewedPosts.push(id);
+            }
+            const post = watchedState.posts.find((item) => item.id === Number(id));
+            const h5 = document.querySelector('h5');
+            h5.textContent = post.title;
+            const description = document.querySelector('.modal-body.text-break');
+            description.textContent = post.description;
+            const aRead = document.querySelector('a');
+            aRead.removeAttribute('href');
+            aRead.setAttribute('href', post.url);
+          }, true);
+        });
+      }, true);
+
+      elements.form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        watchedState.status = 'filling';
+        const formData = new FormData(elements.form);
+        const value = formData.get('url');
+        validate({ url: value }, watchedState.urls)
+          .then((checkValid) => {
+            if (isEmpty(checkValid)) {
+              return firstRequestData(value, watchedState)
+                .then(() => updateData(watchedState));
+            }
+            watchedState.error = checkValid;
+            watchedState.status = 'invalid';
+            return Promise.resolve();
+          });
+      });
     });
-    return schema;
-  };
-
-  const validate = async (fields, urls) => {
-    try {
-      const s = newShema(urls);
-      await s.validate(fields, { abortEarly: false });
-      return {};
-    } catch (err) {
-      return keyBy(err.inner, 'path');
-    }
-  };
-
-  const elements = {
-    form: document.querySelector('form'),
-    input: document.querySelector('#url-input'),
-    feedback: document.querySelector('.feedback'),
-    containerFeeds: document.querySelector('.card-body.feeds'),
-    ulFeeds: document.querySelector('.list-group.feeds'),
-    containerPosts: document.querySelector('.card-body.posts'),
-    ulPosts: document.querySelector('.list-group.posts'),
-  };
-
-  const { watchedState } = render(state, i18nInstance, elements);
-
-  elements.form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    watchedState.status = 'filling';
-    const formData = new FormData(elements.form);
-    const value = formData.get('url');
-    const checkValid = await validate({ url: value }, watchedState.urls);
-    if (isEmpty(checkValid)) {
-      await goNetwork(value, watchedState);
-      await update(watchedState);
-    }
-    if (!isEmpty(checkValid)) {
-      watchedState.error = checkValid;
-      watchedState.status = 'invalid';
-    }
-  });
 };
