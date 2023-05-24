@@ -26,7 +26,6 @@ export default (content) => {
       url,
     };
     dataPosts.push(post);
-    // }
   });
   return { dataFeed, dataPosts };
 };

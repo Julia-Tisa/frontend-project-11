@@ -91,6 +91,17 @@ const renderPosts = (watchedState, elements) => {
   });
 };
 
+const renderModal = (watchedState, id) => {
+  const post = watchedState.posts.find((item) => item.id === Number(id));
+  const h5 = document.querySelector('h5');
+  h5.textContent = post.title;
+  const description = document.querySelector('.modal-body.text-break');
+  description.textContent = post.description;
+  const aRead = document.querySelector('a');
+  aRead.removeAttribute('href');
+  aRead.setAttribute('href', post.url);
+};
+
 const render = (state, i18nInstance, elements) => {
   const watchedState = onChange(state, (path, value) => {
     if (path === 'status') {
@@ -101,6 +112,10 @@ const render = (state, i18nInstance, elements) => {
     }
     if (path === 'posts') {
       renderPosts(state, elements);
+    }
+    if (path === 'uiState.viewedPosts') {
+      renderPosts(state, elements);
+      renderModal(state, value.at(-1));
     }
   });
 

@@ -1,12 +1,79 @@
 import 'bootstrap';
+import axios from 'axios';
 import * as yup from 'yup';
-import keyBy from 'lodash/keyBy.js';
-import isEmpty from 'lodash/isEmpty.js';
+import { isEmpty, keyBy, uniqueId } from 'lodash';
 import i18n from 'i18next';
+import parser from './parser.js';
 import render from './view.js';
-import { firstRequestData, updateData } from './requests.js';
 import resources from './locales/resources.js';
 import yupSetLocale from './locales/yupLocales.js';
+
+const createUrl = (usersUrl) => {
+  const url = new URL('https://allorigins.hexlet.app/get');
+  url.searchParams.append('disableCache', 'true');
+  url.searchParams.append('url', usersUrl);
+  return url.toString();
+};
+
+const firstRequestData = (urlValue, watchedState) => {
+  const urlRequest = createUrl(urlValue);
+  return axios.get(urlRequest, { timeout: 5000 })
+    .then((response) => {
+      const { contents } = response.data;
+      const parsedContent = parser(contents);
+      const feedId = uniqueId();
+      parsedContent.dataFeed.url = urlValue;
+      parsedContent.dataFeed.id = feedId;
+      watchedState.feeds.push(parsedContent.dataFeed);
+      parsedContent.dataPosts.forEach((itemPost) => {
+        const newPost = itemPost;
+        watchedState.actualPostID += 1;
+        newPost.id = watchedState.actualPostID;
+        newPost.feedID = feedId;
+        watchedState.posts.push(newPost);
+      });
+      watchedState.status = 'valid';
+    })
+    .catch((err) => {
+      if (err.isParsingError) {
+        watchedState.status = 'fall';
+      } else {
+        watchedState.status = 'networkError';
+      }
+    });
+};
+
+const updateData = (watchedState) => {
+  const tick = () => {
+    Promise.all(watchedState.feeds.map((feed) => {
+      const urlRequest = createUrl(feed.url);
+      return axios.get(urlRequest, { timeout: 5000 })
+        .then((response) => {
+          const { contents } = response.data;
+          const parsedContent = parser(contents);
+          parsedContent.dataPosts.forEach((itemPost) => {
+            const filter = watchedState.posts
+              .filter((post) => post.feedID === feed.id)
+              .filter((post) => post.title === itemPost.title);
+            if (filter.length === 0) {
+              watchedState.actualPostID += 1;
+              const newPost = itemPost;
+              newPost.id = watchedState.actualPostID;
+              newPost.feedID = feed.id;
+              watchedState.posts.push(newPost);
+            }
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }))
+      .then(() => {
+        setTimeout(tick, 5000);
+      });
+  };
+  setTimeout(tick, 5000);
+};
 
 export default () => {
   const i18nInstance = i18n.createInstance();
@@ -18,7 +85,6 @@ export default () => {
     .then(() => {
       const state = {
         status: 'filling',
-        urls: [],
         error: '',
         feeds: [],
         posts: [],
@@ -56,45 +122,19 @@ export default () => {
 
       const { watchedState } = render(state, i18nInstance, elements);
 
-      elements.listPosts.addEventListener('click', () => {
-        const links = document.querySelectorAll('a.fw-bold');
-        links.forEach((link) => {
-          link.addEventListener('click', () => {
-            const { id } = link.dataset;
-            link.classList.remove('fw-bold');
-            link.classList.add('fw-normal', 'link-secondary');
-            watchedState.uiState.viewedPosts.push(id);
-          }, true);
-        });
-
-        const buttons = document.querySelectorAll('.btn-sm');
-        buttons.forEach((button) => {
-          button.addEventListener('click', () => {
-            const { id } = button.dataset;
-            if (watchedState.uiState.viewedPosts.indexOf(id) === -1) {
-              const a = button.previousElementSibling;
-              a.classList.remove('fw-bold');
-              a.classList.add('fw-normal', 'link-secondary');
-              watchedState.uiState.viewedPosts.push(id);
-            }
-            const post = watchedState.posts.find((item) => item.id === Number(id));
-            const h5 = document.querySelector('h5');
-            h5.textContent = post.title;
-            const description = document.querySelector('.modal-body.text-break');
-            description.textContent = post.description;
-            const aRead = document.querySelector('a');
-            aRead.removeAttribute('href');
-            aRead.setAttribute('href', post.url);
-          }, true);
-        });
-      }, true);
+      elements.listPosts.addEventListener('click', (e) => {
+        const { id } = e.target.dataset;
+        if (watchedState.uiState.viewedPosts.indexOf(id) === -1) {
+          watchedState.uiState.viewedPosts.push(id);
+        }
+      });
 
       elements.form.addEventListener('submit', (e) => {
         e.preventDefault();
         watchedState.status = 'filling';
         const formData = new FormData(elements.form);
         const value = formData.get('url');
-        validate({ url: value }, watchedState.urls)
+        validate({ url: value }, watchedState.feeds.map((feed) => feed.url))
           .then((checkValid) => {
             if (isEmpty(checkValid)) {
               return firstRequestData(value, watchedState)
