@@ -67,6 +67,7 @@ const updateData = (watchedState) => {
             }
           });
           watchedState.posts = [...watchedState.posts, ...newPosts];
+          watchedState.isDataUpdate = true;
         })
         .catch((err) => {
           console.log(err);
@@ -92,6 +93,7 @@ export default () => {
         error: '',
         feeds: [],
         posts: [],
+        isDataUpdate: false,
         uiState: {
           viewedPosts: [],
           idModal: '',
@@ -142,8 +144,12 @@ export default () => {
         validate({ url: value }, watchedState.feeds.map((feed) => feed.url))
           .then((checkValid) => {
             if (isEmpty(checkValid)) {
-              return firstRequestData(value, watchedState);
-              //  .then(() => updateData(watchedState));
+              return firstRequestData(value, watchedState)
+                .then(() => {
+                  if (!watchedState.isDataUpdate) {
+                    updateData(watchedState);
+                  }
+                });
             }
             watchedState.error = checkValid;
             watchedState.status = 'invalid';
@@ -151,6 +157,6 @@ export default () => {
           });
       });
 
-      updateData(watchedState);
+      // updateData(watchedState);
     });
 };
