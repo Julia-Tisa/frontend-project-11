@@ -3,8 +3,8 @@ import onChange from 'on-change';
 const renderState = (value, watchedState, i18n, elements) => {
   if (value === 'invalid') {
     const { error } = watchedState;
-    elements.input.classList.add('is-invalid');
-    elements.feedback.classList.remove('text-danger');
+    elements.input.classList.add(error.url.name ? 'is-invalid' : 'd');
+    elements.input.classList.remove(error.url.name ? 'd' : 'is-invalid');
     elements.feedback.classList.remove('text-success');
     elements.feedback.classList.add('text-danger');
     elements.feedback.textContent = i18n.t(`${error.url.message}`);
@@ -12,24 +12,9 @@ const renderState = (value, watchedState, i18n, elements) => {
   if (value === 'valid') {
     elements.input.classList.remove('is-invalid');
     elements.feedback.classList.remove('text-danger');
-    elements.feedback.classList.remove('text-success');
     elements.feedback.classList.add('text-success');
     elements.feedback.textContent = i18n.t('success');
     elements.form.reset();
-  }
-  if (value === 'fall') {
-    elements.input.classList.remove('is-invalid');
-    elements.feedback.classList.remove('text-danger');
-    elements.feedback.classList.remove('text-success');
-    elements.feedback.classList.add('text-danger');
-    elements.feedback.textContent = i18n.t('fall');
-  }
-  if (value === 'networkError') {
-    elements.input.classList.remove('is-invalid');
-    elements.feedback.classList.remove('text-danger');
-    elements.feedback.classList.remove('text-success');
-    elements.feedback.classList.add('text-danger');
-    elements.feedback.textContent = i18n.t('networkError');
   }
 };
 
@@ -69,7 +54,7 @@ const renderPosts = (watchedState, elements) => {
     li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
     const a = document.createElement('a');
     a.setAttribute('href', post.url);
-    if (watchedState.uiState.viewedPosts.indexOf(post.id.toString()) === -1) {
+    if (!watchedState.uiState.viewedPosts.includes(post.id)) {
       a.classList.add('fw-bold');
     } else {
       a.classList.add('fw-normal', 'link-secondary');
@@ -92,7 +77,7 @@ const renderPosts = (watchedState, elements) => {
 };
 
 const renderModal = (watchedState, id) => {
-  const post = watchedState.posts.find((item) => item.id === Number(id));
+  const post = watchedState.posts.find((item) => item.id === id);
   const h5 = document.querySelector('h5');
   h5.textContent = post.title;
   const description = document.querySelector('.modal-body.text-break');
@@ -115,7 +100,9 @@ const render = (state, i18nInstance, elements) => {
     }
     if (path === 'uiState.viewedPosts') {
       renderPosts(state, elements);
-      renderModal(state, value.at(-1));
+    }
+    if (path === 'uiState.idModal') {
+      renderModal(state, value);
     }
   });
 

@@ -25,20 +25,23 @@ const firstRequestData = (urlValue, watchedState) => {
       parsedContent.dataFeed.url = urlValue;
       parsedContent.dataFeed.id = feedId;
       watchedState.feeds.push(parsedContent.dataFeed);
+      const newPosts = [];
       parsedContent.dataPosts.forEach((itemPost) => {
         const newPost = itemPost;
-        watchedState.actualPostID += 1;
-        newPost.id = watchedState.actualPostID;
+        newPost.id = uniqueId();
         newPost.feedID = feedId;
-        watchedState.posts.push(newPost);
+        newPosts.push(newPost);
       });
+      watchedState.posts = [...watchedState.posts, ...newPosts];
       watchedState.status = 'valid';
     })
     .catch((err) => {
       if (err.isParsingError) {
-        watchedState.status = 'fall';
+        watchedState.error = { url: { message: 'fall' } };
+        watchedState.status = 'invalid';
       } else {
-        watchedState.status = 'networkError';
+        watchedState.error = { url: { message: 'networkError' } };
+        watchedState.status = 'invalid';
       }
     });
 };
@@ -51,18 +54,19 @@ const updateData = (watchedState) => {
         .then((response) => {
           const { contents } = response.data;
           const parsedContent = parser(contents);
+          const newPosts = [];
           parsedContent.dataPosts.forEach((itemPost) => {
             const filter = watchedState.posts
               .filter((post) => post.feedID === feed.id)
               .filter((post) => post.title === itemPost.title);
             if (filter.length === 0) {
-              watchedState.actualPostID += 1;
               const newPost = itemPost;
-              newPost.id = watchedState.actualPostID;
+              newPost.id = uniqueId();
               newPost.feedID = feed.id;
-              watchedState.posts.push(newPost);
+              newPosts.push(newPost);
             }
           });
+          watchedState.posts = [...watchedState.posts, ...newPosts];
         })
         .catch((err) => {
           console.log(err);
@@ -88,9 +92,9 @@ export default () => {
         error: '',
         feeds: [],
         posts: [],
-        actualPostID: 0,
         uiState: {
           viewedPosts: [],
+          idModal: '',
         },
       };
 
@@ -124,8 +128,9 @@ export default () => {
 
       elements.listPosts.addEventListener('click', (e) => {
         const { id } = e.target.dataset;
-        if (watchedState.uiState.viewedPosts.indexOf(id) === -1) {
+        if (!watchedState.uiState.viewedPosts.includes(id)) {
           watchedState.uiState.viewedPosts.push(id);
+          watchedState.uiState.idModal = id;
         }
       });
 
@@ -137,13 +142,15 @@ export default () => {
         validate({ url: value }, watchedState.feeds.map((feed) => feed.url))
           .then((checkValid) => {
             if (isEmpty(checkValid)) {
-              return firstRequestData(value, watchedState)
-                .then(() => updateData(watchedState));
+              return firstRequestData(value, watchedState);
+              //  .then(() => updateData(watchedState));
             }
             watchedState.error = checkValid;
             watchedState.status = 'invalid';
             return Promise.resolve();
           });
       });
+
+      updateData(watchedState);
     });
 };
