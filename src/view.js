@@ -23,40 +23,40 @@ const renderState = (value, watchedState, i18n, elements) => {
 };
 
 const renderFeeds = (watchedState, elements, i18n) => {
-  const headerFeeds = elements.feeds.querySelector('.card-body');
-  const listFeeds = elements.feeds.querySelector('.list-group');
+  const feedsHeader = elements.feeds.querySelector('.card-body');
+  const feedsList = elements.feeds.querySelector('.list-group');
   const h2 = document.createElement('h2');
   h2.classList.add('card-title', 'h4');
   h2.textContent = i18n.t('feeds');
-  headerFeeds.innerHTML = '';
-  headerFeeds.append(h2);
+  feedsHeader.innerHTML = '';
+  feedsHeader.append(h2);
 
-  listFeeds.innerHTML = '';
+  feedsList.innerHTML = '';
   watchedState.feeds.forEach((feed) => {
     const li = document.createElement('li');
     li.classList.add('list-group-item', 'border-0', 'border-end-0');
     const h3 = document.createElement('h3');
-    h3.classList.add('h-6', 'm-0');
+    h3.classList.add('h6', 'm-0');
     h3.textContent = feed.title;
     const p = document.createElement('p');
     p.classList.add('m-0', 'small', 'text-black-50');
     p.textContent = feed.description;
     li.append(p);
     li.prepend(h3);
-    listFeeds.prepend(li);
+    feedsList.prepend(li);
   });
 };
 
 const renderPosts = (watchedState, elements, i18n) => {
-  const headerPosts = elements.posts.querySelector('.card-body');
-  const listPosts = elements.posts.querySelector('.list-group');
-  headerPosts.innerHTML = '';
+  const postsHeader = elements.posts.querySelector('.card-body');
+  const postsList = elements.posts.querySelector('.list-group');
+  postsHeader.innerHTML = '';
   const h2Posts = document.createElement('h2');
   h2Posts.classList.add('card-title', 'h4');
   h2Posts.textContent = i18n.t('posts');
-  headerPosts.append(h2Posts);
+  postsHeader.append(h2Posts);
 
-  listPosts.innerHTML = '';
+  postsList.innerHTML = '';
   watchedState.posts.forEach((post) => {
     const li = document.createElement('li');
     li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
@@ -80,7 +80,7 @@ const renderPosts = (watchedState, elements, i18n) => {
     button.textContent = i18n.t('browse');
     li.append(a);
     li.append(button);
-    listPosts.prepend(li);
+    postsList.prepend(li);
   });
 };
 

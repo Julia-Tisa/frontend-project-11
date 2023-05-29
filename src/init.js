@@ -125,8 +125,8 @@ export default () => {
       };
 
       const { watchedState } = render(state, i18nInstance, elements);
-      const listPosts = elements.posts.querySelector('.list-group');
-      listPosts.addEventListener('click', (e) => {
+
+      elements.posts.addEventListener('click', (e) => {
         const { id } = e.target.dataset;
         if (!watchedState.uiState.viewedPosts.includes(id)) {
           watchedState.uiState.viewedPosts.push(id);
