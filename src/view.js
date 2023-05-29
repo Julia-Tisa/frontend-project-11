@@ -90,8 +90,8 @@ const renderModal = (watchedState, elements, id) => {
   modalTitle.textContent = post.title;
   const modalDescription = elements.modal.querySelector('.modal-body');
   modalDescription.textContent = post.description;
-  const aRead = elements.modal.querySelector('a');
-  aRead.setAttribute('href', post.url);
+  const readCompletely = elements.modal.querySelector('.full-article');
+  readCompletely.setAttribute('href', post.url);
 };
 
 const render = (state, i18nInstance, elements) => {
