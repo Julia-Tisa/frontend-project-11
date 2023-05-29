@@ -37,10 +37,10 @@ const firstRequestData = (urlValue, watchedState) => {
     })
     .catch((err) => {
       if (err.isParsingError) {
-        watchedState.error = { url: { message: 'fall' } };
+        watchedState.error = 'fall';
         watchedState.status = 'invalid';
       } else {
-        watchedState.error = { url: { message: 'networkError' } };
+        watchedState.error = 'networkError';
         watchedState.status = 'invalid';
       }
     });
@@ -67,7 +67,6 @@ const updateData = (watchedState) => {
             }
           });
           watchedState.posts = [...watchedState.posts, ...newPosts];
-          watchedState.isDataUpdate = true;
         })
         .catch((err) => {
           console.log(err);
@@ -90,10 +89,9 @@ export default () => {
     .then(() => {
       const state = {
         status: 'filling',
-        error: '',
+        error: null,
         feeds: [],
         posts: [],
-        isDataUpdate: false,
         uiState: {
           viewedPosts: [],
           idModal: '',
@@ -119,16 +117,16 @@ export default () => {
       const elements = {
         form: document.querySelector('form'),
         input: document.querySelector('#url-input'),
+        buttonSubmit: document.querySelector('[type="submit"]'),
+        modal: document.querySelector('#modal'),
         feedback: document.querySelector('.feedback'),
-        headerFeeds: document.querySelector('.card-body.feeds'),
-        listFeeds: document.querySelector('.list-group.feeds'),
-        headerPosts: document.querySelector('.card-body.posts'),
-        listPosts: document.querySelector('.list-group.posts'),
+        feeds: document.querySelector('.feeds'),
+        posts: document.querySelector('.posts'),
       };
 
       const { watchedState } = render(state, i18nInstance, elements);
-
-      elements.listPosts.addEventListener('click', (e) => {
+      const listPosts = elements.posts.querySelector('.list-group');
+      listPosts.addEventListener('click', (e) => {
         const { id } = e.target.dataset;
         if (!watchedState.uiState.viewedPosts.includes(id)) {
           watchedState.uiState.viewedPosts.push(id);
@@ -138,25 +136,20 @@ export default () => {
 
       elements.form.addEventListener('submit', (e) => {
         e.preventDefault();
-        watchedState.status = 'filling';
+        watchedState.status = 'loading';
         const formData = new FormData(elements.form);
         const value = formData.get('url');
         validate({ url: value }, watchedState.feeds.map((feed) => feed.url))
           .then((checkValid) => {
             if (isEmpty(checkValid)) {
-              return firstRequestData(value, watchedState)
-                .then(() => {
-                  if (!watchedState.isDataUpdate) {
-                    updateData(watchedState);
-                  }
-                });
+              return firstRequestData(value, watchedState);
             }
-            watchedState.error = checkValid;
+            watchedState.error = checkValid.url.message;
             watchedState.status = 'invalid';
             return Promise.resolve();
           });
       });
 
-      // updateData(watchedState);
+      updateData(watchedState);
     });
 };

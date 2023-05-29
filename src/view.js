@@ -3,29 +3,35 @@ import onChange from 'on-change';
 const renderState = (value, watchedState, i18n, elements) => {
   if (value === 'invalid') {
     const { error } = watchedState;
-    elements.input.classList.add(error.url.name ? 'is-invalid' : 'd');
-    elements.input.classList.remove(error.url.name ? 'd' : 'is-invalid');
+    elements.buttonSubmit.disabled = false;
+    elements.input.classList.add('is-invalid');
     elements.feedback.classList.remove('text-success');
     elements.feedback.classList.add('text-danger');
-    elements.feedback.textContent = i18n.t(`${error.url.message}`);
+    elements.feedback.textContent = i18n.t(error);
   }
   if (value === 'valid') {
+    elements.buttonSubmit.disabled = false;
     elements.input.classList.remove('is-invalid');
     elements.feedback.classList.remove('text-danger');
     elements.feedback.classList.add('text-success');
     elements.feedback.textContent = i18n.t('success');
     elements.form.reset();
   }
+  if (value === 'loading') {
+    elements.buttonSubmit.disabled = true;
+  }
 };
 
-const renderFeeds = (watchedState, elements) => {
+const renderFeeds = (watchedState, elements, i18n) => {
+  const headerFeeds = elements.feeds.querySelector('.card-body');
+  const listFeeds = elements.feeds.querySelector('.list-group');
   const h2 = document.createElement('h2');
   h2.classList.add('card-title', 'h4');
-  h2.textContent = 'Фиды';
-  elements.headerFeeds.innerHTML = '';
-  elements.headerFeeds.append(h2);
+  h2.textContent = i18n.t('feeds');
+  headerFeeds.innerHTML = '';
+  headerFeeds.append(h2);
 
-  elements.listFeeds.innerHTML = '';
+  listFeeds.innerHTML = '';
   watchedState.feeds.forEach((feed) => {
     const li = document.createElement('li');
     li.classList.add('list-group-item', 'border-0', 'border-end-0');
@@ -37,18 +43,20 @@ const renderFeeds = (watchedState, elements) => {
     p.textContent = feed.description;
     li.append(p);
     li.prepend(h3);
-    elements.listFeeds.prepend(li);
+    listFeeds.prepend(li);
   });
 };
 
-const renderPosts = (watchedState, elements) => {
-  elements.headerPosts.innerHTML = '';
+const renderPosts = (watchedState, elements, i18n) => {
+  const headerPosts = elements.posts.querySelector('.card-body');
+  const listPosts = elements.posts.querySelector('.list-group');
+  headerPosts.innerHTML = '';
   const h2Posts = document.createElement('h2');
   h2Posts.classList.add('card-title', 'h4');
-  h2Posts.textContent = 'Посты';
-  elements.headerPosts.append(h2Posts);
+  h2Posts.textContent = i18n.t('posts');
+  headerPosts.append(h2Posts);
 
-  elements.listPosts.innerHTML = '';
+  listPosts.innerHTML = '';
   watchedState.posts.forEach((post) => {
     const li = document.createElement('li');
     li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
@@ -69,21 +77,20 @@ const renderPosts = (watchedState, elements) => {
     button.setAttribute('data-id', post.id);
     button.setAttribute('data-bs-toggle', 'modal');
     button.setAttribute('data-bs-target', '#modal');
-    button.textContent = 'Просмотр';
+    button.textContent = i18n.t('browse');
     li.append(a);
     li.append(button);
-    elements.listPosts.prepend(li);
+    listPosts.prepend(li);
   });
 };
 
-const renderModal = (watchedState, id) => {
+const renderModal = (watchedState, elements, id) => {
   const post = watchedState.posts.find((item) => item.id === id);
-  const h5 = document.querySelector('h5');
-  h5.textContent = post.title;
-  const description = document.querySelector('.modal-body.text-break');
-  description.textContent = post.description;
-  const aRead = document.querySelector('a');
-  aRead.removeAttribute('href');
+  const modalTitle = elements.modal.querySelector('.modal-title');
+  modalTitle.textContent = post.title;
+  const modalDescription = elements.modal.querySelector('.modal-body');
+  modalDescription.textContent = post.description;
+  const aRead = elements.modal.querySelector('a');
   aRead.setAttribute('href', post.url);
 };
 
@@ -93,16 +100,16 @@ const render = (state, i18nInstance, elements) => {
       renderState(value, state, i18nInstance, elements);
     }
     if (path === 'feeds') {
-      renderFeeds(state, elements);
+      renderFeeds(state, elements, i18nInstance);
     }
     if (path === 'posts') {
-      renderPosts(state, elements);
+      renderPosts(state, elements, i18nInstance);
     }
     if (path === 'uiState.viewedPosts') {
-      renderPosts(state, elements);
+      renderPosts(state, elements, i18nInstance);
     }
     if (path === 'uiState.idModal') {
-      renderModal(state, value);
+      renderModal(state, elements, value);
     }
   });
 
